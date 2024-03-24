@@ -20,11 +20,13 @@ class PrimaryButton extends StatelessWidget {
         child: Text(title,
         style: TextStyle(
           fontWeight: FontWeight.bold,
-          fontSize: 18
+          fontSize: 18,
+          color: Colors.white
         ),
         ),
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.blue,
+
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(30),
           ),

@@ -1,7 +1,11 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
           packages="com.example.women_saftey">
-    <uses-permission android:name="android.permission.READ_CONTACTs"/>
-    <uses-permission android:name="android.permission.WRITE_CONTACTs"/>
+    <uses-permission android:name="android.permission.READ_CONTACTS"/>
+    <uses-permission android:name="android.permission.WRITE_CONTACTS"/>
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+    <uses-permission android:name="android.permission.SEND_SMS"/>
+
 
     <application
             android:label="women_saftey"
