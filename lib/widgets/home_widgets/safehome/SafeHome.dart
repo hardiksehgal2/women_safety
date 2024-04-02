@@ -98,7 +98,6 @@ class _SafeHomeState extends State<SafeHome> {
   @override
   void initState() {
     super.initState();
-
     _getCurrentLocation();
   }
 

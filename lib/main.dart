@@ -39,14 +39,21 @@ class MyApp extends StatelessWidget {
       home:FutureBuilder(
           future: MySharedPreference.getUserType(),
           builder: (BuildContext context, AsyncSnapshot snapshot) {
-            if(snapshot.data==""){
-              return BottomPage();
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return progressIndicator(context);
             }
-            if(snapshot.data=="child"){
-              return BottomPage();
+            if (snapshot.hasError) {
+              return Text('Error: ${snapshot.error}');
             }
-            if(snapshot.data=="parent"){
-              return ParentHomeScreen();
+            if (snapshot.hasData) {
+              String userType = snapshot.data!;
+              if (userType.isEmpty) {
+                return LoginScreen();
+              } else if (userType == "child") {
+                return BottomPage(); // Show BottomPage for child users
+              } else if (userType == "parent") {
+                return ParentHomeScreen();
+              }
             }
             return progressIndicator(context);
             // if (snapshot.connectionState == ConnectionState.waiting) {

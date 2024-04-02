@@ -1,54 +1,41 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:women_saftey/widgets/home_widgets/safeWebView.dart';
 
 import '../../utils/quotes.dart';
 
 class CustomCarouel extends StatelessWidget {
   const CustomCarouel({Key? key}) : super(key: key);
 
-  Future<String> openMap(String index) async {
-    switch (index) {
-      case "0":
-        return "https://www.business-standard.com/content/press-releases-ani/top-10-inspiring-indian-women-achievers-you-should-follow-in-2023-123100300787_1.html";
-      case "1":
-        return "https://plan-international.org/ending-violence/16-ways-end-violence-girls";
-      case "2":
-        return "https://www.healthline.com/health/womens-health/self-defense-tips-escape";
-      default:
-        return "https://www.youtube.com/results?search_query=women+self+defense+techniques";
+  Future<void> _openUrl(String url) async {
+    if (await canLaunch(url)) {
+      await launch(url);
+    } else {
+      Fluttertoast.showToast(msg: "Could not launch URL");
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      child: CarouselSlider(
+      child: CarouselSlider.builder(
         options: CarouselOptions(
           aspectRatio: 2.0,
           autoPlay: true,
           enlargeCenterPage: true,
         ),
-        items: List.generate(
-          imageSliders.length,
-              (index) => Card(
+        itemCount: imageSliders.length,
+        itemBuilder: (BuildContext context, int index, int realIndex) {
+          return Card(
             elevation: 5.0,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(20),
             ),
             child: InkWell(
               onTap: () async {
-                // Open the URL when a card is tapped
                 String url = await openMap(index.toString());
-                if (await canLaunch(url)) {
-                  await launch(url);
-                } else {
-                  Fluttertoast.showToast(msg: "Could not launch URL");
-                }
+                await _openUrl(url);
               },
               child: Container(
                 decoration: BoxDecoration(
@@ -77,8 +64,7 @@ class CustomCarouel extends StatelessWidget {
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
-                          fontSize:
-                          MediaQuery.of(context).size.width * 0.05,
+                          fontSize: MediaQuery.of(context).size.width * 0.05,
                         ),
                       ),
                     ),
@@ -86,9 +72,22 @@ class CustomCarouel extends StatelessWidget {
                 ),
               ),
             ),
-          ),
-        ),
+          );
+        },
       ),
     );
+  }
+
+  Future<String> openMap(String index) async {
+    switch (index) {
+      case "0":
+        return "https://www.business-standard.com/content/press-releases-ani/top-10-inspiring-indian-women-achievers-you-should-follow-in-2023-123100300787_1.html";
+      case "1":
+        return "https://plan-international.org/ending-violence/16-ways-end-violence-girls";
+      case "2":
+        return "https://www.healthline.com/health/womens-health/self-defense-tips-escape";
+      default:
+        return "https://www.youtube.com/results?search_query=women+self+defense+techniques";
+    }
   }
 }

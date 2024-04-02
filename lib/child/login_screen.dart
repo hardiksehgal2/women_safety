@@ -6,6 +6,7 @@ import 'package:women_saftey/Components/PrimaryButton.dart';
 import 'package:women_saftey/Components/SecondaryButton.dart';
 import 'package:women_saftey/Components/customTextField.dart';
 import 'package:velocity_x/velocity_x.dart';
+import 'package:women_saftey/child/bottom_screen.dart';
 import 'package:women_saftey/child/register_child.dart';
 import 'package:women_saftey/db/shared_pref.dart';
 import 'package:women_saftey/child/bottom_screens/home_screen.dart';
@@ -52,14 +53,14 @@ class _LoginScreenState extends State<LoginScreen> {
               goTo(context, ParentHomeScreen());
             } else {
               MySharedPreference.saveUserType('child');
-              goTo(context, HomeScreen());
+              goTo(context, BottomPage());
             }
           } else {
             // Handle the case where the document or "type" field doesn't exist
             print('User document or "type" field not found.');
           }
         });
-        goTo(context, HomeScreen());
+        goTo(context, BottomPage());
       }
 
     } on FirebaseAuthException catch (e) {

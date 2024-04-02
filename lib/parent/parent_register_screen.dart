@@ -11,7 +11,6 @@ import '../Components/customTextField.dart';
 import '../model/user_model.dart';
 
 
-
 class RegisterParentScreen extends StatefulWidget {
   @override
   State<RegisterParentScreen> createState() => _RegisterParentScreenState();
@@ -20,92 +19,66 @@ class RegisterParentScreen extends StatefulWidget {
 class _RegisterParentScreenState extends State<RegisterParentScreen> {
   bool isPasswordShown = true;
   bool isRetypePasswordShown = true;
+
   final _formKey = GlobalKey<FormState>();
   final _formData = Map<String, Object>();
-  bool isLoading=true;
+  bool isLoading = false;
 
   _onSubmit() async {
     _formKey.currentState!.save();
     if (_formData['password'] != _formData['rpassword']) {
-      dialogueBox(context, "Password and Re-type password should be same");
-      print("function is working");
-      return; // Exit early if passwords don't match
-    }
-    else{
+      dialogueBox(context, 'password and retype password should be equal');
+    } else {
+      progressIndicator(context);
       try {
-        // Show loading indicator
-        progressIndicator(context);
-        try {
-          setState(() {
-            isLoading=true;
-          });
-          UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        setState(() {
+          isLoading = true;
+        });
+        UserCredential userCredential = await FirebaseAuth.instance
+            .createUserWithEmailAndPassword(
             email: _formData['gemail'].toString(),
-            password: _formData['password'].toString(),
-          );
-          if(userCredential.user!=null){
-            final v=userCredential.user!.uid;
-            DocumentReference<Map<String, dynamic>> db=FirebaseFirestore.instance.collection('usres').doc(v);
-            final user=UserModel(
+            password: _formData['password'].toString());
+        if (userCredential.user != null) {
+          final v = userCredential.user!.uid;
+          DocumentReference<Map<String, dynamic>> db =
+          FirebaseFirestore.instance.collection('users').doc(v);
+          final user = UserModel(
               name: _formData['name'].toString(),
               phone: _formData['phone'].toString(),
               childEmail: _formData['cemail'].toString(),
               parentEmail: _formData['gemail'].toString(),
               id: v,
               type: 'parent'
-            );
-            final jsonData=user.toJson();
-            await db.set(jsonData);
-            Navigator.pop(context);
-
-            // Provide feedback to the user
-            dialogueBox(context, "Registration successful. Please login.");
-
-            // Navigate to the login screen
+          );
+          final jsonData = user.toJson();
+          await db.set(jsonData).whenComplete(() {
             goTo(context, LoginScreen());
             setState(() {
-              isLoading=false;
+              isLoading = false;
             });
-          }
-        } on FirebaseAuthException catch (e) {
-          setState(() {
-            isLoading=false;
           });
-          if (e.code == 'weak-password') {
-            print('The password provided is too weak.');
-            dialogueBox(context,  'The password provided is too weak.');
-          } else if (e.code == 'email-already-in-use') {
-            print('The account already exists for that email.');
-            dialogueBox(context,  'The account already exists for that email.');
-          }
-        } catch (e) {
-          setState(() {
-            isLoading=false;
-          });
-          print(e);
         }
-
-        // FirebaseAuth auth = FirebaseAuth.instance;
-        // await auth.createUserWithEmailAndPassword(
-        //   email: _formData['email'].toString(),
-        //   password: _formData['password'].toString(),
-        // ).then((v) async{});
-
-        // Hide loading indicator
-
-      } on FirebaseAuthException catch(e){
-        dialogueBox(context,  e.toString());
-      }
-      catch(e){
-        Navigator.pop(context);
-        // Handle other exceptions
-        dialogueBox(context, 'Error: ${e.toString()}');
+      } on FirebaseAuthException catch (e) {
+        setState(() {
+          isLoading = false;
+        });
+        if (e.code == 'weak-password') {
+          print('The password provided is too weak.');
+          dialogueBox(context, 'The password provided is too weak.');
+        } else if (e.code == 'email-already-in-use') {
+          print('The account already exists for that email.');
+          dialogueBox(context, 'The account already exists for that email.');
+        }
+      } catch (e) {
+        print(e);
+        setState(() {
+          isLoading = false;
+        });
+        dialogueBox(context, e.toString());
       }
     }
-    final email = _formData['email'];
-    final password = _formData['password'];
-    print(email != null ? email : "Email not provided");
-    print(password != null ? password : "Password not provided");
+    print(_formData['email']);
+    print(_formData['password']);
   }
 
   @override
@@ -113,165 +86,170 @@ class _RegisterParentScreenState extends State<RegisterParentScreen> {
     return Scaffold(
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(8),
+          padding: const EdgeInsets.symmetric(horizontal: 10),
           child: Stack(
             children: [
-              isLoading?progressIndicator(context)
-                  :
-              SingleChildScrollView(
+              isLoading
+                  ? progressIndicator(context)
+                  : SingleChildScrollView(
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Column(
-                      children: [
-                        "REGISTER AS PARENT".text.xl4.bold.makeCentered(),
-                        SizedBox(height: 20),
-                        Image.asset(
-                          "assets/womens.webp",
-                          height: 150,
-                          width: 150,
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 20),
-                    Form(
-                      key: _formKey,
+                    Container(
+                      height: MediaQuery.of(context).size.height * 0.3,
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
-                          CustomTextField(
-                            hintText: "Enter Name",
-                            textInputAction: TextInputAction.next,
-                            keyboardtype: TextInputType.name,
-                            prefix: Icon(Icons.person),
-                            onsave: (name) {
-                              _formData['name'] = name ?? "";
-                            },
-                            validate: (email) {
-                              if (email!.isEmpty || email.length < 4 ) {
-                                return "Enter correct name";
-                              } return null;
-                            },
-                          ).pOnly(bottom: 20),
-                          CustomTextField(
-                            hintText: "Enter Phone ",
-                            textInputAction: TextInputAction.next,
-                            keyboardtype: TextInputType.phone,
-                            prefix: Icon(Icons.phone),
-                            onsave: (phone) {
-                              _formData['phone'] = phone ?? "";
-                            },
-                            validate: (email) {
-                              if (email!.isEmpty || email.length < 10 ) {
-                                return "Enter correct phone";
-                              } return null;
-                            },
-                          ).pOnly(bottom: 20),
-                          CustomTextField(
-                            hintText: "Enter Email",
-                            textInputAction: TextInputAction.next,
-                            keyboardtype: TextInputType.emailAddress,
-                            prefix: Icon(Icons.mail),
-                            onsave: (email) {
-                              _formData['gemail'] = email ?? "";
-                            },
-                            validate: (email) {
-                              if (email!.isEmpty || email.length < 4 || !email.contains("@")) {
-                                return "Enter correct email";
-                              } else {
-                                return null;
-                              }
-                            },
-                          ).pOnly(bottom: 20),
-                          CustomTextField(
-                            hintText: "Enter Child Email",
-                            textInputAction: TextInputAction.next,
-                            keyboardtype: TextInputType.emailAddress,
-                            prefix: Icon(Icons.mail_lock),
-                            onsave: (cemail) {
-                              _formData['cemail'] = cemail ?? "";
-                            },
-                            validate: (email) {
-                              if (email!.isEmpty || email.length < 4 || !email.contains("@")) {
-                                return "Enter correct email";
-                              } else {
-                                return null;
-                              }
-                            },
-                          ).pOnly(bottom: 20),
-                          CustomTextField(
-                            hintText: "Enter Password",
-                            isPassword: isPasswordShown,
-                            prefix: Icon(Icons.key),
-                            onsave: (password) {
-                              _formData['password'] = password ?? "";
-                            },
-                            validate: (password) {
-                              if (password!.isEmpty || password.length < 7) {
-                                return "Enter correct password";
-                              } else {
-                                return null;
-                              }
-                            },
-                            suffix: IconButton(
-                              onPressed: () {
-                                setState(() {
-                                  isPasswordShown = !isPasswordShown;
-                                });
-                              },
-                              icon: isPasswordShown
-                                  ? Icon(Icons.visibility_off)
-                                  : Icon(Icons.visibility),
-                            ),
-                          ).pOnly(bottom: 20),
-                          CustomTextField(
-                            hintText: "Retype Password",
-                            isPassword: isRetypePasswordShown,
-                            prefix: Icon(Icons.key),
-                            onsave: (password) {
-                              _formData['rpassword'] = password ?? "";
-                            },
-                            validate: (password) {
-                              if (password!.isEmpty || password.length < 7) {
-                                return "Enter correct password";
-                              } else {
-                                return null;
-                              }
-                            },
-                            suffix: IconButton(
-                              onPressed: () {
-                                setState(() {
-                                  isRetypePasswordShown = !isRetypePasswordShown;
-                                });
-                              },
-                              icon: isRetypePasswordShown
-                                  ? Icon(Icons.visibility_off)
-                                  : Icon(Icons.visibility),
-                            ),
-                          ).pOnly(bottom: 20),
-                          FilledButton(
-                            onPressed: () {},
-                            child: PrimaryButton(
-                              title: "REGISTER",
-                              onPressed: () {
-                                if (_formKey.currentState!.validate()) {
-                                  _onSubmit();
-                                }
-                              },
-                            ),
-                          ).pOnly(bottom: 20),
+                          Text(
+                            "REGISTER AS Parent",
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                                fontSize: 40,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.red),
+                          ),
+                          Image.asset(
+                            "assets/womens.webp",
+                            height: 150,
+                            width: 150,
+                          ),
                         ],
                       ),
                     ),
-
-
-                    SizedBox(height: 5),
-                    SecondaryButton(
-                      title: "Existing User?",
-                      onPressed: () {
-                        goTo(context, LoginScreen());
-                      },
+                    Container(
+                      height: MediaQuery.of(context).size.height * 0.75,
+                      child: Form(
+                        key: _formKey,
+                        child: Column(
+                          mainAxisAlignment:
+                          MainAxisAlignment.spaceEvenly,
+                          children: [
+                            CustomTextField(
+                              hintText: 'enter name',
+                              textInputAction: TextInputAction.next,
+                              keyboardtype: TextInputType.name,
+                              prefix: Icon(Icons.person),
+                              onsave: (name) {
+                                _formData['name'] = name ?? "";
+                              },
+                              validate: (email) {
+                                if (email!.isEmpty || email.length < 3) {
+                                  return 'enter correct name';
+                                }
+                                return null;
+                              },
+                            ),
+                            CustomTextField(
+                              hintText: 'enter phone',
+                              textInputAction: TextInputAction.next,
+                              keyboardtype: TextInputType.phone,
+                              prefix: Icon(Icons.phone),
+                              onsave: (phone) {
+                                _formData['phone'] = phone ?? "";
+                              },
+                              validate: (email) {
+                                if (email!.isEmpty || email.length < 10) {
+                                  return 'enter correct phone';
+                                }
+                                return null;
+                              },
+                            ),
+                            CustomTextField(
+                              hintText: 'enter email',
+                              textInputAction: TextInputAction.next,
+                              keyboardtype: TextInputType.emailAddress,
+                              prefix: Icon(Icons.person),
+                              onsave: (email) {
+                                _formData['gemail'] = email ?? "";
+                              },
+                              validate: (email) {
+                                if (email!.isEmpty ||
+                                    email.length < 3 ||
+                                    !email.contains("@")) {
+                                  return 'enter correct email';
+                                }
+                              },
+                            ),
+                            CustomTextField(
+                              hintText: 'enter child email',
+                              textInputAction: TextInputAction.next,
+                              keyboardtype: TextInputType.emailAddress,
+                              prefix: Icon(Icons.person),
+                              onsave: (cemail) {
+                                _formData['cemail'] = cemail ?? "";
+                              },
+                              validate: (email) {
+                                if (email!.isEmpty ||
+                                    email.length < 3 ||
+                                    !email.contains("@")) {
+                                  return 'enter correct email';
+                                }
+                              },
+                            ),
+                            CustomTextField(
+                              hintText: 'enter password',
+                              isPassword: isPasswordShown,
+                              prefix: Icon(Icons.vpn_key_rounded),
+                              validate: (password) {
+                                if (password!.isEmpty ||
+                                    password.length < 7) {
+                                  return 'enter correct password';
+                                }
+                                return null;
+                              },
+                              onsave: (password) {
+                                _formData['password'] = password ?? "";
+                              },
+                              suffix: IconButton(
+                                  onPressed: () {
+                                    setState(() {
+                                      isPasswordShown = !isPasswordShown;
+                                    });
+                                  },
+                                  icon: isPasswordShown
+                                      ? Icon(Icons.visibility_off)
+                                      : Icon(Icons.visibility)),
+                            ),
+                            CustomTextField(
+                              hintText: 'retype password',
+                              isPassword: isRetypePasswordShown,
+                              prefix: Icon(Icons.vpn_key_rounded),
+                              validate: (password) {
+                                if (password!.isEmpty ||
+                                    password.length < 7) {
+                                  return 'enter correct password';
+                                }
+                                return null;
+                              },
+                              onsave: (password) {
+                                _formData['rpassword'] = password ?? "";
+                              },
+                              suffix: IconButton(
+                                  onPressed: () {
+                                    setState(() {
+                                      isRetypePasswordShown =
+                                      !isRetypePasswordShown;
+                                    });
+                                  },
+                                  icon: isRetypePasswordShown
+                                      ? Icon(Icons.visibility_off)
+                                      : Icon(Icons.visibility)),
+                            ),
+                            PrimaryButton(
+                                title: 'REGISTER',
+                                onPressed: () {
+                                  if (_formKey.currentState!.validate()) {
+                                    _onSubmit();
+                                  }
+                                }),
+                          ],
+                        ),
+                      ),
                     ),
+                    SecondaryButton(
+                        title: 'Login with your account',
+                        onPressed: () {
+                          goTo(context, LoginScreen());
+                        }),
                   ],
                 ),
               ),
