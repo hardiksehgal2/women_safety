@@ -1,11 +1,15 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:uuid/uuid.dart';
 import 'package:velocity_x/velocity_x.dart';
+import 'dart:io';
 
 class MessageTextField extends StatefulWidget {
   final String currentId;
@@ -22,9 +26,33 @@ class _MessageTextFieldState extends State<MessageTextField> {
 
   Position? _currentPosition;
   String? _currentAddress;
-
   String? message;
+  File? imageFile;
+
   LocationPermission? permission;
+  Future getImage()async{
+      ImagePicker _picker=ImagePicker();
+      await _picker.pickImage(source: ImageSource.gallery).then((XFile? xFile)  {
+        if(xFile!=null){
+          imageFile=File(xFile.path);
+          uploadImage();
+        }
+      });
+  }
+  Future uploadImage() async {
+    String fileName = Uuid().v1();
+    int status = 1;
+    var ref =
+    FirebaseStorage.instance.ref().child('images').child("$fileName.jpg");
+    var uploadTask = await ref.putFile(imageFile!).catchError((error) async{
+      status=0;
+      Fluttertoast.showToast(msg: error.toString());
+    });
+    if (status == 1) {
+      String imageUrl = await uploadTask.ref.getDownloadURL();
+      await sendMessage(imageUrl, 'img');
+    }
+  }
   Future _getCurrentLocation() async {
     permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied) {
@@ -48,7 +76,6 @@ class _MessageTextFieldState extends State<MessageTextField> {
       Fluttertoast.showToast(msg: e.toString());
     });
   }
-
   _getAddressFromLatLon() async {
     try {
       List<Placemark> placemarks = await placemarkFromCoordinates(
@@ -188,7 +215,9 @@ class _MessageTextFieldState extends State<MessageTextField> {
               });
             }),
             chatsIcon(Icons.camera_alt, "Camera", () {}),
-            chatsIcon(Icons.insert_photo_rounded, "Gallery", () {}),
+            chatsIcon(Icons.insert_photo_rounded, "Gallery", () async{
+              getImage();
+            }),
           ],
         ),
       ),

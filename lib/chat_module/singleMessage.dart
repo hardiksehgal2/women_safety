@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -33,7 +34,8 @@ class SingleMessage extends StatelessWidget {
       formattedTime = '${dateTime.hour}:${dateTime.minute}';
     }
 
-    return type=='text'?Container(
+    return type=='text'
+        ? Container(
       constraints: BoxConstraints(maxWidth: size.width / 2),
       alignment: isMe ?? false ? Alignment.centerRight : Alignment.centerLeft,
       padding: EdgeInsets.all(10),
@@ -73,8 +75,56 @@ class SingleMessage extends StatelessWidget {
           ],
         ),
       ),
-    ):
-    Container(
+    )
+    :type=='img'?Container(
+      height: size.height / 2.5,
+      width: size.width,
+      //constraints: BoxConstraints(maxWidth: size.width / 2),
+      alignment: isMe ?? false ? Alignment.centerRight : Alignment.centerLeft,
+      padding: EdgeInsets.all(10),
+      child: Container(
+        height: size.height / 2.5,
+        width: size.width,
+        decoration: BoxDecoration(
+          color: isMe ?? false ? Colors.pink[300] : Colors.grey[600],
+          borderRadius: BorderRadius.only(
+            topLeft: isMe ?? false ? Radius.circular(15) : Radius.zero,
+            topRight: isMe ?? false ? Radius.zero : Radius.circular(15),
+            bottomLeft: Radius.circular(15),
+            bottomRight: Radius.circular(15),
+          ),
+        ),
+        // padding: EdgeInsets.all(10),
+        constraints: BoxConstraints(maxWidth: size.width / 2),
+        alignment: isMe ?? false ? Alignment.centerRight : Alignment.centerLeft,
+        child: Column(
+          children: [
+
+            CachedNetworkImage(
+              imageUrl: message!,
+              fit: BoxFit.cover,
+              height: size.height / 3.62,
+              width: size.width,
+              placeholder: (context, url) =>
+                  CircularProgressIndicator(),
+              errorWidget: (context, url, error) =>
+                  Icon(Icons.error),
+            ),
+            SizedBox(
+              height: 10,
+            ),
+            Align(
+              alignment: Alignment.centerRight,
+              child: Text(
+                formattedTime,
+                style: TextStyle(fontSize: 10, color: Colors.white70),
+              ),
+            ),
+          ],
+        ),
+      ),
+    )
+        : Container(
       constraints: BoxConstraints(maxWidth: size.width / 2),
       alignment: isMe ?? false ? Alignment.centerRight : Alignment.centerLeft,
       padding: EdgeInsets.all(10),
