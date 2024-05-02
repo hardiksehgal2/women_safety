@@ -3,10 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:women_saftey/child/bottom_screen.dart';
 import 'package:women_saftey/db/shared_pref.dart';
-import 'package:women_saftey/child/bottom_screens/home_screen.dart';
+import 'package:flutter/foundation.dart';
 import 'package:women_saftey/child/login_screen.dart';
 import 'package:women_saftey/parent/parent_home_screen.dart';
 import 'package:women_saftey/utils/constants.dart';
+import 'package:women_saftey/utils/flutter_background_services.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -22,6 +23,7 @@ void main() async {
     ),
   );
   await MySharedPreference.init();
+  await initializeService();
   runApp(MyApp());
 }
 
@@ -53,6 +55,9 @@ class MyApp extends StatelessWidget {
                 return BottomPage(); // Show BottomPage for child users
               } else if (userType == "parent") {
                 return ParentHomeScreen();
+              }
+              else if (kIsWeb) { // Check if running on web platform
+                return BottomPage(); // Show BottomPage for web platform
               }
             }
             return progressIndicator(context);

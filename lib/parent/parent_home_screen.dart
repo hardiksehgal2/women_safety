@@ -37,7 +37,7 @@ class ParentHomeScreen extends StatelessWidget {
 
       appBar: AppBar(
         backgroundColor: Colors.pink,
-        title: const Text("SELECT GUARDIAN"),
+        title: const Text("SELECT GUARD"),
       ),
       body: StreamBuilder(
         stream: FirebaseFirestore.instance

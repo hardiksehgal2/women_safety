@@ -1,5 +1,8 @@
 import 'package:sqflite/sqflite.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import '../model/contactsm.dart';
+
+DatabaseFactory databaseFactory = databaseFactoryFfi;
 
 class DatabaseHelper {
   String contactTable = 'contact_table';
@@ -7,15 +10,11 @@ class DatabaseHelper {
   String colContactName = 'name';
   String colContactNumber = 'number';
 
-  // named private constructor..(used to create an instance of a singleton class)
-  // it will be used to create an instance of the DatabaseHelper class
+
   DatabaseHelper._createInstance();
 
   //Now lets create an instance of the database
-  static DatabaseHelper? _databaseHelper; // this _databaseHelper will
-  //be referenced using 'this' keyword. It helps to access getters and
-  //setters of the class. for example: _database getter is used when we
-  //want to initialize the db.
+  static DatabaseHelper? _databaseHelper;
   factory DatabaseHelper() {
     //factory keyword allows the constructor to return some value
     if (_databaseHelper == null) {

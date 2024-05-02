@@ -39,18 +39,36 @@ class _MessageTextFieldState extends State<MessageTextField> {
         }
       });
   }
-  Future uploadImage() async {
+  Future<void> uploadImage() async {
+    if (imageFile == null) {
+      Fluttertoast.showToast(msg: 'No image selected');
+      return;
+    }
+
     String fileName = Uuid().v1();
-    int status = 1;
-    var ref =
-    FirebaseStorage.instance.ref().child('images').child("$fileName.jpg");
-    var uploadTask = await ref.putFile(imageFile!).catchError((error) async{
-      status=0;
-      Fluttertoast.showToast(msg: error.toString());
-    });
-    if (status == 1) {
+    try {
+      Reference ref = FirebaseStorage.instance.ref().child('images').child("$fileName.jpg");
+      TaskSnapshot uploadTask = await
+      ref.putFile(imageFile!);
       String imageUrl = await uploadTask.ref.getDownloadURL();
+
       await sendMessage(imageUrl, 'img');
+    } catch (e) {
+      Fluttertoast.showToast(msg: e.toString());
+    }
+  }
+  Future<void> getImageFromCamera() async {
+    ImagePicker _picker = ImagePicker();
+    try {
+      final XFile? xFile = await _picker.pickImage(source: ImageSource.camera);
+      if (xFile != null) {
+        setState(() {
+          imageFile = File(xFile.path);
+        });
+        uploadImage();
+      }
+    } catch (e) {
+      Fluttertoast.showToast(msg: e.toString());
     }
   }
   Future _getCurrentLocation() async {
@@ -99,11 +117,20 @@ class _MessageTextFieldState extends State<MessageTextField> {
   }
   Future<void> sendMessage(String message, String type) async {
     try {
-      if (_currentAddress != null) {
+      if (_currentAddress != null&& type != 'img') {
         message = "https://www.google.com/maps/search/?api=1&query=$_currentAddress";
-      } else {
-        message = "https://www.google.com/maps";
       }
+      else if (type == 'text') {
+        // If the message type is 'text', use the user's text message
+        message = message;
+      }else if (type == 'img') {
+        // If the message type is 'img', use the image message
+        // You may need to adjust this based on how your image messages are stored or formatted
+        message = "Image message: $message"; // Example: Concatenate 'Image message:' with the image URL or any relevant information
+      }
+      // else {
+      //   message = "https://www.google.com/maps";
+      // }
 
       await FirebaseFirestore.instance
           .collection("usres")
@@ -214,7 +241,9 @@ class _MessageTextFieldState extends State<MessageTextField> {
                 sendMessage(message!, "link");
               });
             }),
-            chatsIcon(Icons.camera_alt, "Camera", () {}),
+            chatsIcon(Icons.camera_alt, "Camera", () async{
+              await getImageFromCamera();
+            }),
             chatsIcon(Icons.insert_photo_rounded, "Gallery", () async{
               getImage();
             }),

@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:velocity_x/velocity_x.dart';
 import 'package:women_saftey/chat_module/message_text_field.dart';
 import 'package:women_saftey/chat_module/singleMessage.dart';
@@ -90,13 +91,34 @@ class _ChatScreenState extends State<ChatScreen> {
                       itemBuilder: (BuildContext context, int index) {
                         bool isMe = snapshot.data!.docs[index]['senderId'] == widget.currentUserId;
                         final data = snapshot.data!.docs[index];
-                        return SingleMessage(
-                          message: data['message'],
-                          date: data['date'],
-                          isMe: isMe,
-                          friendName: widget.friendName,
-                          myName: myname,
-                          type: data['type'],
+                        return Dismissible(
+                          key: UniqueKey() ,
+                          onDismissed: (direction) async{
+                            await FirebaseFirestore.instance
+                                .collection('usres')
+                                .doc(widget.currentUserId)
+                                .collection('messages')
+                                .doc(widget.friendId)
+                                .collection('chats')
+                                .doc(data.id)
+                                .delete();
+                            await FirebaseFirestore.instance
+                                .collection('usres')
+                                .doc(widget.friendId)
+                                .collection('messages')
+                                .doc(widget.currentUserId)
+                                .collection('chats')
+                                .doc(data.id)
+                                .delete().then((value) => Fluttertoast.showToast(msg: 'message deleted successfully'));
+                          },
+                          child: SingleMessage(
+                            message: data['message'],
+                            date: data['date'],
+                            isMe: isMe,
+                            friendName: widget.friendName,
+                            myName: myname,
+                            type: data['type'],
+                          ),
                         );
                       },
                     ),

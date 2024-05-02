@@ -21,7 +21,7 @@ class _SafeHomeState extends State<SafeHome> {
   Position? _curentPosition;
   String? _curentAddress;
   LocationPermission? permission;
-
+  _getPermission()async =>await [Permission.sms].request();
   _isPermissionGranted() async => await Permission.sms.status.isGranted;
   _sendSms(String phoneNumber, String message, {int? simSlot}) async {
     SmsStatus result = await BackgroundSms.sendMessage(
@@ -32,35 +32,6 @@ class _SafeHomeState extends State<SafeHome> {
     } else {
       Fluttertoast.showToast(msg: "failed");
     }
-  }
-
-  Future<bool> _handleLocationPermission() async {
-    bool serviceEnabled;
-    LocationPermission permission;
-
-    serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text(
-              'Location services are disabled. Please enable the services')));
-      return false;
-    }
-    permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) {
-        ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Location permissions are denied')));
-        return false;
-      }
-    }
-    if (permission == LocationPermission.deniedForever) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text(
-              'Location permissions are permanently denied, we cannot request permissions.')));
-      return false;
-    }
-    return true;
   }
 
   _getCurrentLocation() async {
@@ -95,9 +66,39 @@ class _SafeHomeState extends State<SafeHome> {
     }
   }
 
+  Future<bool> _handleLocationPermission() async {
+    bool serviceEnabled;
+    LocationPermission permission;
+
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text(
+              'Location services are disabled. Please enable the services')));
+      return false;
+    }
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Location permissions are denied')));
+        return false;
+      }
+    }
+    if (permission == LocationPermission.deniedForever) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text(
+              'Location permissions are permanently denied, we cannot request permissions.')));
+      return false;
+    }
+    return true;
+  }
+
   @override
   void initState() {
     super.initState();
+    _getPermission();
     _getCurrentLocation();
   }
 
@@ -132,6 +133,22 @@ class _SafeHomeState extends State<SafeHome> {
                       String recipients = "";
                       List<TContact> contactList =
                       await DatabaseHelper().getContactList();
+                      /*
+                      String recipients = "";
+                      List<TContact> contactList =
+                      await DatabaseHelper().getContactList();
+                      String messageBody =
+                            "https://www.google.com/maps/search/?api=1&query=${_curentPosition!.latitude}%2C${_curentPosition!.longitude}. $_curentAddress";
+
+                        if (await _isPermissionGranted()) {
+                          contactList.forEach((element) {
+                            _sendSms("${element.number}",
+                                "i am in trouble $messageBody",simSlot:1);
+                          });
+                        } else {
+                          Fluttertoast.showToast(msg: "something wrong");
+                        }
+                      */
                       print(contactList.length);
                       if (contactList.isEmpty) {
                         Fluttertoast.showToast(
